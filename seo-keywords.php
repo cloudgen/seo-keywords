@@ -102,7 +102,7 @@ class SEOBot{
     $result = "";
     $this->get_key_list();
     if(self::$sc_count == 0 ){
-      //$result = '<style>.pzx{position:absolute;left:-1000px;width:900px}</style>';
+      $result = '<style>.pzx{position:absolute;left:-1000px;width:900px}</style>';
     }
     $data=self::$keywords[self::$sc_count++];
     return $result."<div class=\"pzx\"><h1>".preg_replace('/\*([^\*]+)\*/','<a href="'.$data[1].'">${1}</a>',$data[0]).'</h1></div>';
