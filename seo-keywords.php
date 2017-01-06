@@ -18,12 +18,18 @@ class SEOBot{
     }
     add_shortcode('keyword',array(&$this,'sc_keyword'));
     register_activation_hook( __FILE__, array( &$this, 'setup' ) );
-    register_deactivation_hook( __FILE__, array(&$this, 'db_drop' ) );
+    register_deactivation_hook( __FILE__, array(&$this, 'remove' ) );
     add_action( 'wp_ajax_nopriv_seobot_list', array(&$this, 'ajax_list'), 1);
+    add_action ('cj_seo_keyword_update', 'my_repeat_function');
   }
-  public function sc_form1($attr){
-    return "";
-    return "<table><tr><td>name</td><td><input type=text size=20/></td></tr></table>";
+  public function cronjob_activation(){
+    if( !wp_next_scheduled( 'cj_seo_keyword_update' ) ) {
+      wp_schedule_event( time(), 'hourly', array(&$this,'sync_server') );
+    }
+  }
+  public function cronjob_deactivation(){
+    $timestamp = wp_next_scheduled ('cj_seo_keyword_update');
+	  wp_unschedule_event($timestamp, array(&$this,'cj_seo_keyword_update') );
   }
   public function sync_server(){
     $postData = array(
@@ -65,6 +71,10 @@ class SEOBot{
       $wpdb->query("INSERT INTO $table_name (name, url) VALUES ".join(",",$sql));
     }
   }
+  public function remove(){
+    register_deactivation_hook (__FILE__, array(&$this,'cronjob_deactivation'));
+    $this->db_drop();
+  }
   public function setup(){
     if(self::$upper_server=="" || self::$upper_server==$_SERVER['HTTP_HOST']){
       $this->db_create();
@@ -72,7 +82,7 @@ class SEOBot{
     }else {
       $this->sync_server();
     }
-    return "INSERT INTO $table_name (name, url) VALUES ".join(",",$sql);
+    add_action('wp', array(&$this,'cronjob_activation'));
   }
   public function ajax_list(){
     $this->get_key_list();
@@ -102,9 +112,11 @@ class SEOBot{
     $result = "";
     $this->get_key_list();
     if(self::$sc_count == 0 ){
-      $result = '<style>.pzx{position:absolute;left:-1000px;width:900px}</style>';
+      //$result = '<style>.pzx{position:absolute;left:-1000px;width:900px}</style>';
     }
-    $data=self::$keywords[self::$sc_count++];
+    $pos = self::$sc_count % count(self::$keywords);
+    $data=self::$keywords[$pos];
+    self::$sc_count++;
     return $result."<div class=\"pzx\"><h1>".preg_replace('/\*([^\*]+)\*/','<a href="'.$data[1].'">${1}</a>',$data[0]).'</h1></div>';
   }
   function db_create() {
