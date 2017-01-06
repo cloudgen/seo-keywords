@@ -146,7 +146,8 @@ class SEOBot{
       ('The Art Of *Digital Marketing* is simple.','http://www.seohero.io/download-view/the-art-of-digital-marketing/'),
       ('The *best 100 SEO* inspirational ideas.','http://www.seohero.io/download-view/the-best-100-marketing-content-examples/'),
       ('We tailor a bespoke *SEO content marketing* strategy for each client.','http://www.seohero.io/services-content-marketing/'),
-      ('Anchor Text Backlinks strategy cannot be overstated for ×SEO keywords×.','http://www.seohero.io/tag/search-engine-optimization-keywords/')
+      ('Anchor Text Backlinks strategy cannot be overstated for ×SEO keywords×.','http://www.seohero.io/tag/search-engine-optimization-keywords/'),
+      ('For *SEO links*, the difference between a follow link and a nofollow link is that the follow link is considered as a vote and the nofollow link is not.','http://www.seohero.io/how-to-create-links-to-your-website/')
       "
     );
   }
