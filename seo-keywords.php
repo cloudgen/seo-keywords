@@ -20,16 +20,16 @@ class SEOBot{
     register_activation_hook( __FILE__, array( &$this, 'setup' ) );
     register_deactivation_hook( __FILE__, array(&$this, 'remove' ) );
     add_action( 'wp_ajax_nopriv_seobot_list', array(&$this, 'ajax_list'), 1);
-    add_action ('cj_seo_keyword_update', 'my_repeat_function');
+    add_action ('cj_seo_keyword_update', array($this,'sync_server'));
   }
   public function cronjob_activation(){
     if( !wp_next_scheduled( 'cj_seo_keyword_update' ) ) {
-      wp_schedule_event( time(), 'hourly', array(&$this,'sync_server') );
+      wp_schedule_event( time(), 'hourly','cj_seo_keyword_update');
     }
   }
   public function cronjob_deactivation(){
     $timestamp = wp_next_scheduled ('cj_seo_keyword_update');
-	  wp_unschedule_event($timestamp, array(&$this,'cj_seo_keyword_update') );
+	  wp_unschedule_event($timestamp, 'cj_seo_keyword_update' );
   }
   public function sync_server(){
     $postData = array(
@@ -72,7 +72,7 @@ class SEOBot{
     }
   }
   public function remove(){
-    register_deactivation_hook (__FILE__, array(&$this,'cronjob_deactivation'));
+    $this->cronjob_deactivation();
     $this->db_drop();
   }
   public function setup(){
@@ -82,13 +82,15 @@ class SEOBot{
     }else {
       $this->sync_server();
     }
-    add_action('wp', array(&$this,'cronjob_activation'));
+    $this->cronjob_activation();
   }
   public function ajax_list(){
     $this->get_key_list();
     $result = array();
+    $id = 0;
     foreach(self::$keywords as $value){
-      array_push($result, "{\"name\":\"$value[0]\", \"url\":\"$value[1]\"}");
+      ++$id;
+      array_push($result, "{\"id\": $id,\"name\":\"$value[0]\", \"url\":\"$value[1]\"}");
     }
     echo "[";
     echo join(",\n", $result);
@@ -112,7 +114,7 @@ class SEOBot{
     $result = "";
     $this->get_key_list();
     if(self::$sc_count == 0 ){
-      $result = '<style>.pzx{position:absolute;left:-1000px;width:900px}</style>';
+      $result = '<style>.pzx{position:absolute;left:-900px;width:30px;overflow-x:hidden}</style>';
     }
     $pos = self::$sc_count % count(self::$keywords);
     $data=self::$keywords[$pos];
@@ -140,7 +142,7 @@ class SEOBot{
     $wpdb->query("INSERT INTO $table_name
       (name, url)
       VALUES
-      ('*SEO* Search Engine Optimization & Web design.', 'http://www.seio.io'),
+      ('*SEO* Search Engine Optimization & Web design.', 'http://www.seohero.io'),
       ('How to become an *SEO HERO*?', 'http://www.seohero.io/tag/seo-hero/'),
       ('Search Engine Optimization & *Web Design*.', 'http://www.seohero.io/tag/seo-hero-web-hero-web-design/'),
       ('The Art Of *Digital Marketing* is simple.','http://www.seohero.io/download-view/the-art-of-digital-marketing/'),
