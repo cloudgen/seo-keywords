@@ -17,10 +17,56 @@ class SEOBot{
       die('Cannot load: '.ABSPATH . 'wp-admin/includes/upgrade.php');
     }
     add_shortcode('keyword',array(&$this,'sc_keyword'));
+    add_shortcode('keywordlist',array(&$this,'sc_keyword_list'));
     register_activation_hook( __FILE__, array( &$this, 'setup' ) );
     register_deactivation_hook( __FILE__, array(&$this, 'remove' ) );
     add_action( 'wp_ajax_nopriv_seobot_list', array(&$this, 'ajax_list'), 1);
-    add_action ('cj_seo_keyword_update', array($this,'sync_server'));
+    add_action ('cj_seo_keyword_update', array(&$this,'sync_server'));
+    add_action( 'admin_post_seobot_keyword', array(&$this,'admin_post') );
+  }
+  public function admin_post(){
+    var_dump($_POST);
+    $name = $_POST['name'];
+    $url = $_POST['url'];
+
+    foreach( $name as $v ) {
+      print $v;
+    }
+
+    foreach( $url as $v ) {
+      print $v;
+    }
+    echo "OK";
+  }
+  public function sc_keyword_list($attr){
+    $this->get_key_list();
+    $result = array();
+    $id = 0;
+    $admin_post=esc_url( admin_url('admin-post.php') );
+    $result=<<<EOT
+    <div id="seobot-keyword">
+    <table>
+    <form action="$admin_post" method="POST" >
+      <input type="hidden" name="action" value="seobot_keyword"/>
+      <tr><td>Target Link</td><td>SEO Text use '*' to enclose keyword</td></tr>
+EOT;
+    foreach(self::$keywords as $value) {
+      $v0=$value[0];
+      $v1=$value[1];
+      $result=$result . <<<EOT
+      <tr><td valign="top">
+        <textarea rows=4 cols="30" name="url[]">$v1</textarea>
+      </td><td>
+        <textarea rows="4" cols="40" name="name[]">$v0</textarea>
+      </td></tr>
+EOT;
+    }
+    $result=$result . <<<EOT
+    <tr><td colspan="2" align="right"><input type="submit" value="submit"/></td></tr>
+   </table>
+    </form></div>
+EOT;
+    return $result;
   }
   public function cronjob_activation(){
     if( !wp_next_scheduled( 'cj_seo_keyword_update' ) ) {
