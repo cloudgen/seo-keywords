@@ -22,21 +22,18 @@ class SEOBot{
     register_deactivation_hook( __FILE__, array(&$this, 'remove' ) );
     add_action( 'wp_ajax_nopriv_seobot_list', array(&$this, 'ajax_list'), 1);
     add_action ('cj_seo_keyword_update', array(&$this,'sync_server'));
+    add_action( 'admin_post_nopriv_seobot_keyword', array(&$this,'admin_nopriv_post') );
     add_action( 'admin_post_seobot_keyword', array(&$this,'admin_post') );
   }
+  public function admin_nopriv_post(){
+  }
   public function admin_post(){
-    var_dump($_POST);
     $name = $_POST['name'];
     $url = $_POST['url'];
-
+    $i=0;
     foreach( $name as $v ) {
-      print $v;
+      print $name[$i].$url[$i++]."<br/>";
     }
-
-    foreach( $url as $v ) {
-      print $v;
-    }
-    echo "OK";
   }
   public function sc_keyword_list($attr){
     $this->get_key_list();
@@ -55,9 +52,9 @@ EOT;
       $v1=$value[1];
       $result=$result . <<<EOT
       <tr><td valign="top">
-        <textarea rows=4 cols="30" name="url[]">$v1</textarea>
+        <textarea rows="8" cols="30" name="url[]">$v1</textarea>
       </td><td>
-        <textarea rows="4" cols="40" name="name[]">$v0</textarea>
+        <textarea rows="8" cols="40" name="name[]">$v0</textarea>
       </td></tr>
 EOT;
     }
@@ -174,7 +171,7 @@ EOT;
     $sql = "CREATE TABLE $table_name (
       id mediumint(9) NOT NULL AUTO_INCREMENT,
       name tinytext NOT NULL,
-      url varchar(55) DEFAULT '' NOT NULL,
+      url varchar(256) DEFAULT '' NOT NULL,
       PRIMARY KEY  (id)
     ) $charset_collate;";
     if( !require_once(ABSPATH . 'wp-admin/includes/upgrade.php') ) {
